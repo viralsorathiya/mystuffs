@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation stack that invokes a Lambda function and retrieves the output."
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaCFNExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaLoggingPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: MyCloudFormationLambda
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 10
+      Code:
+        ZipFile: |
+          import json
+          import cfnresponse
+
+          def lambda_handler(event, context):
+              response_data = {
+                  "Message": "Lambda has created the User!",
+                  "UserName": "The password is stored in the Secrets!"
+              }
+              combined_output = json.dumps(response_data)
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, {"Message": combined_output})
+              return response_data
+
+  MyCustomResource:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt MyLambdaFunction.Arn
+
+Outputs:
+  LambdaFunctionOutput:
+    Description: "Output from Lambda function"
+    Value: !GetAtt MyCustomResource.Message
