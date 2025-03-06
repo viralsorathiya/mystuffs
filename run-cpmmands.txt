@@ -1,0 +1,3 @@
+aws cloudformation deploy --stack-name invoke-lambda --template-file invoke-lambda.yml --parameter-overrides ExistingLambdaFunctionName=MyExistingLambdaFunction UniqueExecutionID=$(date +%s)
+aws cloudformation describe-stacks --stack-name invoke-lambda --query "Stacks[0].Outputs[0].OutputValue" --output text
+
