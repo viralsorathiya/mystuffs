@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to invoke an existing Lambda function every time it's deployed."
+
+Parameters:
+  ExistingLambdaFunctionName:
+    Type: String
+    Default: "MyExistingLambdaFunction"
+    Description: "Name of the existing Lambda function to invoke."
+
+  UniqueExecutionID:
+    Type: String
+    Description: "Unique ID to ensure Lambda invocation every time."
+
+Resources:
+  InvokeLambdaFunction:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ExistingLambdaFunctionName}"
+      ExecutionID: !Ref UniqueExecutionID
+
+Outputs:
+  LambdaFunctionOutput:
+    Description: "Output from the invoked Lambda function"
+    Value: !GetAtt InvokeLambdaFunction.Message
