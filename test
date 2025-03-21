@@ -1,0 +1,1 @@
+[System.Environment]::SetEnvironmentVariable("DD_DBM_PROPAGATION_MODE", "service", "Machine")
