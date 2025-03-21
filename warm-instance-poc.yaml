@@ -1,53 +1,89 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  DesiredCapacityParam:
+    Type: Number
+    Default: 2
+    Description: The desired capacity of the Auto Scaling Group.
+
 Resources:
-  MyLaunchTemplate:
+  WarmPoolPocSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Internal access only
+      VpcId: !GetAtt WarmPoolPocVPC.VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/16
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 10.0.0.0/16
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 10.0.0.0/16
+
+  WarmPoolPocLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: my-asg-template
+      LaunchTemplateName: warm-pool-poc-launch-template
       LaunchTemplateData:
-        ImageId: ami-0abcdef1234567890  # Replace with a valid AMI ID
+        ImageId: ami-08b5b3a93ed654d19 # Replace with your AMI ID
         InstanceType: t3.micro
-        KeyName: my-key  # Replace with your EC2 key pair
         NetworkInterfaces:
-          - AssociatePublicIpAddress: true
+          - AssociatePublicIpAddress: false
             DeviceIndex: 0
+            Groups:
+              - !Ref WarmPoolPocSecurityGroup
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: MyASGInstance
+                Value: WarmPoolPocInstance
 
-  MyAutoScalingGroup:
+  WarmPoolPocAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AutoScalingGroupName: my-asg
-      MinSize: 2
-      DesiredCapacity: 2
-      MaxSize: 5
-      VPCZoneIdentifier: 
-        - subnet-12345678  # Replace with your subnet ID
+      AutoScalingGroupName: warm-pool-poc-asg
+      MinSize: !Ref DesiredCapacityParam
+      DesiredCapacity: !Ref DesiredCapacityParam
+      MaxSize: !Ref DesiredCapacityParam
+      VPCZoneIdentifier:
+        - !Ref WarmPoolPocSubnet
       LaunchTemplate:
-        LaunchTemplateId: !Ref MyLaunchTemplate
-        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
-      WarmPool:
-        PoolState: Stopped  # Keeps instances in a stopped state
-        MinSize: 1  # One pre-initialized warm instance
+        LaunchTemplateId: !Ref WarmPoolPocLaunchTemplate
+        Version: !GetAtt WarmPoolPocLaunchTemplate.LatestVersionNumber
       Tags:
         - Key: Name
-          Value: MyASGInstance
+          Value: WarmPoolPocInstance
           PropagateAtLaunch: true
 
-  ASGScalingPolicy:
-    Type: AWS::AutoScaling::ScalingPolicy
+  WarmPoolPocWarmPool:
+    Type: AWS::AutoScaling::WarmPool
     Properties:
-      AutoScalingGroupName: !Ref MyAutoScalingGroup
-      PolicyType: TargetTrackingScaling
-      TargetTrackingConfiguration:
-        PredefinedMetricSpecification:
-          PredefinedMetricType: ASGAverageCPUUtilization
-        TargetValue: 50.0
+      AutoScalingGroupName: !Ref WarmPoolPocAutoScalingGroup
+      MinSize: 1
+      PoolState: Stopped
+      MaxGroupPreparedCapacity: 3
 
-Outputs:
-  ASGName:
-    Description: "Name of the Auto Scaling Group"
-    Value: !Ref MyAutoScalingGroup
+  WarmPoolPocVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: WarmPoolPocVPC
+
+  WarmPoolPocSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WarmPoolPocVPC
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: WarmPoolPocSubnet
