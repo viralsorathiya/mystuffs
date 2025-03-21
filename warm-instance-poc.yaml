@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: my-asg-template
+      LaunchTemplateData:
+        ImageId: ami-0abcdef1234567890  # Replace with a valid AMI ID
+        InstanceType: t3.micro
+        KeyName: my-key  # Replace with your EC2 key pair
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            DeviceIndex: 0
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: MyASGInstance
+
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: my-asg
+      MinSize: 2
+      DesiredCapacity: 2
+      MaxSize: 5
+      VPCZoneIdentifier: 
+        - subnet-12345678  # Replace with your subnet ID
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      WarmPool:
+        PoolState: Stopped  # Keeps instances in a stopped state
+        MinSize: 1  # One pre-initialized warm instance
+      Tags:
+        - Key: Name
+          Value: MyASGInstance
+          PropagateAtLaunch: true
+
+  ASGScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref MyAutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50.0
+
+Outputs:
+  ASGName:
+    Description: "Name of the Auto Scaling Group"
+    Value: !Ref MyAutoScalingGroup
