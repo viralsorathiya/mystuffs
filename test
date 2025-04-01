@@ -1,1 +1,93 @@
-[System.Environment]::SetEnvironmentVariable("DD_DBM_PROPAGATION_MODE", "service", "Machine")
+$ErrorActionPreference = "Stop"
+
+#region = '$(region)'
+
+$dryRun = $true  # Set this to $false to actually delete AMIs
+
+function GetReleaseVariable([string]$name) {
+    $connectionToken="${System.AccessToken}"
+    $teamProject = $env:SYSTEM_TEAMPROJECT
+    $orgUrl = $env:SYSTEM_COLLECTIONURI
+
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Ssl3, [Net.SecurityProtocolType]::Tls, [Net.SecurityProtocolType]::Tls11, [Net.SecurityProtocolType]::Tls12
+
+    $urlget = "$orgUrl/$teamProject/_apis/release/releases/$(Release.ReleaseId)?api-version=5.1"
+    $base64AuthInfo = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($connectionToken)"))
+    $getdef = Invoke-RestMethod -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} -Method GET -ContentType application/json -Uri $urlget
+
+    return $getdef.variables.PSObject.Properties[$name].Value.value
+}
+
+$prodAMIs = GetReleaseVariable "prodAMIs_$(region)"
+if (-not $prodAMIs) {
+    Write-Error "missing in-use prodAMI values"
+}
+
+$preprodAMIs = GetReleaseVariable "preprodAMIs_$(region)"
+if (-not $preprodAMIs) {
+    Write-Error "missing in-use preprodAMI values"
+}
+
+Write-Host "prodAMIs = $prodAMIs"
+Write-Host "preprodAMIs = $preprodAMIs"
+
+Write-Host "populating imagesInUse for $region from variables"
+
+$a = $prodAMIs -split ','
+$b = $preprodAMIs -split ','
+$images = ($a + $b) | & { $_ } | Select-Object -Unique
+$imagesInUse = @{}
+foreach ($i in $images) {
+    $imagesInUse.Add($i, $i)
+}
+
+$MissingRelease = $false
+$filterList = @(
+    'Name=tag:ado:ReleaseName,Values="Release-* (release^*")',
+    'Name=tag:ado:ReleaseName,Values="Release-* (develop^*")',
+    'Name=tag:ado:ReleaseName,Values="Release-????"',
+    'Name="name",Values="ip-full-base-windows-*"'
+)
+
+foreach ($filters in $filterList) {
+    Write-Host "Filter: $filters"
+    $dt = (Get-Date).AddDays(-15)
+    if ($filters.Contains("develop")) {
+        $dt = (Get-Date).AddDays(-3)
+    }
+    $createdDt = "{0:yyyy-MM-dd}" -f $dt
+    $query = "Images[?CreationDate<'$createdDt'].{id:ImageId, CreationDate:CreationDate, Name:Name, ReleaseName:Tags[?Key=='ado:ReleaseName']|[0].Value, ReleaseURL:Tags[?Key=='ado:ReleaseWebURL']|[0].Value}[] | sort_by(@, &CreationDate)"
+
+    if ($MissingRelease) {
+        $amis_str = (aws ec2 describe-images --region $region --owners self --query $query) | Out-String
+        $amis = ConvertFrom-Json $amis_str | Where-Object { $_.ReleaseName -eq $null }
+    } else {
+        $amis_str = (aws ec2 describe-images --region $region --owners self --filters $filters --query $query) | Out-String
+        $amis = ConvertFrom-Json $amis_str
+    }
+
+    $totalCount = ($amis | Measure-Object).Count
+    Write-Host "found $totalCount amis matching filter"
+
+    if ($totalCount -le 1) {
+        Write-Host "Skipping deletion. Only 1 or fewer AMIs found."
+        continue
+    }
+
+    $amis = $amis | Sort-Object { [datetime]$_.CreationDate } -Descending
+    $retainId = $amis[0].id
+    Write-Host "Retaining latest AMI: $retainId $($amis[0].Name)"
+
+    foreach ($ami in $amis[1..($amis.Count - 1)]) {
+        if ($imagesInUse.ContainsKey($ami.id)) {
+            Write-Warning "Skipping in-use AMI: $($ami.id) $($ami.Name)"
+        } else {
+            if ($dryRun) {
+                Write-Host "[DryRun] Would delete AMI: $($ami.id) $($ami.Name)"
+            } else {
+                Write-Host "Deleting AMI: $($ami.id) $($ami.Name)"
+                aws ec2 deregister-image --region $region --image-id $ami.id
+            }
+        }
+    }
+}
