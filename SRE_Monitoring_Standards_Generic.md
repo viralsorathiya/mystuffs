@@ -40,32 +40,6 @@ Every system in production must have:
 
 ---
 
-## 2. Tool Configuration Standards
-
-### 2.1 Tool-Agnostic Configuration
-
-**Monitoring Configuration Structure**: Organize systems logically by environment, platform, and service.
-
-Production/
-├── Kubernetes/
-│ ├── Cluster-East/
-│ └── Cluster-West/
-├── Mainframe/
-│ ├── LPAR-A/
-│ └── LPAR-B/
-└── Infrastructure/
-├── Network/
-└── Storage/
-
-**Standard Practices**:
-- Use appropriate protocols (e.g., SNMP, SSH, WMI, HTTP) for telemetry collection
-- Implement custom scripts or plugins for non-standard applications
-- Use synthetic transactions for critical workflows and user journeys
-
-**Naming Convention**: `[Environment]-[Platform]-[Service]-[Component]`
-
----
-
 ## 3. Alerting Standards
 
 ### 3.1 Alert Severity Levels
