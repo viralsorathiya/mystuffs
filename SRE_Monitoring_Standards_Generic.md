@@ -99,7 +99,7 @@ All critical services must define:
 - **Latency SLO**: P95/P99 response time targets
 - **Error Rate SLO**: Acceptable failure rate over time
 
-### 4.2 SLO Tiers
+## 4.2 SLO Tiers
 
 | Tier | Availability | Latency (P95) | Error Rate |
 |------|--------------|----------------|-------------|
@@ -107,10 +107,7 @@ All critical services must define:
 | Tier 2 (Important) | 99.5% | < 500ms | < 0.5% |
 | Tier 3 (Standard) | 99.0% | < 1000ms | < 1.0% |
 
-### 4.3 Error Budget Management
-- Track error budget weekly
-- Deploy freeze if 50% consumed
-- Postmortem required if fully consumed
+> 🔍 **Note:** These tiers provide a baseline reference. Individual services should define their own SLOs based on user impact, business importance, and historical performance. Critical transactional systems (e.g., authentication, payments, data feeds) should aim for Tier 1 targets. Less critical or asynchronous services may fall into Tier 2 or Tier 3.
 
 ---
 
