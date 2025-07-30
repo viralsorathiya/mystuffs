@@ -73,9 +73,21 @@ Every alert must include:
 - Network: Warning 80% bandwidth, Critical 95%
 
 **Applications:**
-- Response time: Warning P95 > SLO, Critical P95 > 2x SLO
-- Error rate: Warning > 1%, Critical > 5%
+- Response time: Warning P95 > SLO, Critical P95 > 2x SLO  
+- Error rate: Warning > 1%, Critical > 5%  
 - Availability: Critical < 99% over 5min window
+
+> ⚠️ **Note:** These thresholds serve as global baseline standards. Teams are encouraged to tune alert thresholds based on:
+> - **Environment context** (e.g., production vs. staging vs. dev)
+> - **System role** (e.g., API gateway vs. background job worker vs. database)
+> - **Workload patterns** (e.g., batch, streaming, high-frequency transactions)
+>
+> **Examples:**
+> - 90% CPU may be fine for compute-heavy cache layers like Redis but not for latency-sensitive APIs.
+> - Disk spikes may occur during scheduled backups—monitor for sustained usage over time, not momentary peaks.
+> - An authentication service or Traffix interface may require more aggressive error rate monitoring than an internal metrics sync job.
+>
+> **SRE Best Practice:** Every alert threshold should be reviewed during onboarding and refined post-incident to reduce noise and improve signal fidelity. All deviations from standard must be documented in alert definitions or service runbooks.
 
 ---
 
