@@ -155,42 +155,19 @@ Capture during incidents:
 - Update dashboards
 - Adjust alert thresholds as needed
 
----
+### 6.4 Postmortems
 
-## 7. Data Management
+All P1 and significant P2 incidents must have a documented postmortem within 5 business days.
 
-### 7.1 Retention Policies
-
-| Data Type | Retention |
-|-----------|-----------|
-| Raw metrics | 30 days |
-| Hourly aggregates | 6 months |
-| Daily aggregates | 2 years |
-| Logs | 30 days |
-| Session/user data | 35 days |
-
-### 7.2 Metric Naming Standards
-Use consistent prefixes:
-- `app.` = Application metrics
-- `infra.` = Infra-level metrics
-- `business.` = Business KPIs
-- `sli.` = Service Level Indicators
-
----
-
-## 8. Access Control and Security
-
-### 8.1 Role-Based Access
-- **SRE**: Full access to config, alerting, dashboards
-- **Developers**: Read-only to dashboards and metrics
-- **Management**: View access to SLO dashboards
-- **On-call**: Alert visibility and ack permissions
-
-### 8.2 Security Requirements
-- MFA enabled on all monitoring tools
-- API key rotation every 90 days
-- Audit logging for changes
-- IP/network restrictions where possible
+#### Requirements:
+- **Blameless** tone and fact-based analysis
+- **Incident summary**: what happened, when, and how it was resolved
+- **Root cause analysis** (RCA) using 5 Whys or similar method
+- **Impact assessment**: users, systems, SLAs affected
+- **Timeline of events**: detection, escalation, mitigation
+- **Corrective actions**: technical, process, or people-based
+- **Follow-up tasks** tracked in ticketing/project system
+- **Review meeting** with involved teams (optional but encouraged)
 
 ---
 
@@ -211,26 +188,6 @@ Each runbook must include:
 - Escalation contacts
 - Linked dashboards
 - Troubleshooting decision tree
-
----
-
-## 10. Maintenance and Review
-
-### 10.1 Review Schedule
-- **Weekly**: Alert review & noise reduction
-- **Monthly**: SLO error budget analysis
-- **Quarterly**: Coverage audit
-- **Annually**: Tooling & standards update
-
-### 10.2 Configuration Management
-- Store configs in version control (Git)
-- Peer review before production alert changes
-- Rollback plan for any config changes
-
-### 10.3 Continuous Improvement
-- Solicit feedback from dev and ops teams
-- Track monitoring tool performance
-- Test and onboard new observability features
 
 ---
 
