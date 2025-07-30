@@ -111,31 +111,6 @@ All critical services must define:
 
 ---
 
-## 5. Dashboard Standards
-
-### 5.1 Dashboard Hierarchy
-1. **SRE Overview**: Cross-platform health summary
-2. **Platform Dashboards**: Kubernetes, Mainframe, Infrastructure
-3. **Service Dashboards**: App-specific performance & errors
-4. **Incident Dashboards**: Troubleshooting & drill-down
-
-### 5.2 Dashboard Requirements
-- 4-hour default time range
-- Red/Yellow/Green indicators
-- SLO compliance graphs
-- Link to related dashboards and docs
-- Mobile-friendly layouts
-
-### 5.3 Naming Convention
-Format: `[Type] - [Scope] - [Detail]`
-
-**Examples:**
-- `SRE - Prod - Overview`
-- `Platform - Kubernetes - Cluster Health`
-- `Service - PaymentAPI - Response Time`
-
----
-
 ## 6. Incident Response Integration
 
 ### 6.1 On-Call Procedures
