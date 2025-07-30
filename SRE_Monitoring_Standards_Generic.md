@@ -40,15 +40,15 @@ Every system in production must have:
 
 ---
 
-## 3. Alerting Standards
+## 2. Alerting Standards
 
-### 3.1 Alert Severity Levels
+### 2.1 Alert Severity Levels
 - **Critical (P1)**: Service down, revenue impact, immediate response required
 - **High (P2)**: Degraded performance, user impact, 15min response SLA
 - **Medium (P3)**: Potential issues, business hours response
 - **Low (P4)**: Informational, no immediate action needed
 
-### 3.2 Alert Naming Convention
+### 2.2 Alert Naming Convention
 Format: `[Severity] [Service] [Component] [Metric] [Condition]`
 
 **Examples:**
@@ -56,7 +56,7 @@ Format: `[Severity] [Service] [Component] [Metric] [Condition]`
 - `HIGH OrderService API Response Time Above Threshold`
 - `MEDIUM K8S Node CPU Utilization High`
 
-### 3.3 Alert Requirements
+### 2.3 Alert Requirements
 Every alert must include:
 - Clear description of the problem
 - Impact assessment (user/business)
@@ -64,7 +64,7 @@ Every alert must include:
 - Escalation path and contacts
 - Links to relevant dashboards/runbooks
 
-### 3.4 Alert Thresholds
+### 2.4 Alert Thresholds
 
 **Infrastructure:**
 - CPU: Warning 80%, Critical 95%
@@ -91,15 +91,15 @@ Every alert must include:
 
 ---
 
-## 4. Service Level Objectives (SLOs)
+## 3. Service Level Objectives (SLOs)
 
-### 4.1 SLO Definition Requirements
+### 3.1 SLO Definition Requirements
 All critical services must define:
 - **Availability SLO**: % uptime over a rolling 30-day window
 - **Latency SLO**: P95/P99 response time targets
 - **Error Rate SLO**: Acceptable failure rate over time
 
-## 4.2 SLO Tiers
+### 3.2 SLO Tiers
 
 | Tier | Availability | Latency (P95) | Error Rate |
 |------|--------------|----------------|-------------|
@@ -111,26 +111,26 @@ All critical services must define:
 
 ---
 
-## 6. Incident Response Integration
+## 4. Incident Response Integration
 
-### 6.1 On-Call Procedures
+### 4.1 On-Call Procedures
 - Primary alerted for P1/P2 immediately
 - Secondary alerted if P1 unresolved in 15 mins
 - Management escalation after 1hr for P1
 
-### 6.2 Incident Documentation
-Capture during incidents:
+### 4.2 Incident Documentation
+Captured during incidents should include:
 - Timeline from monitoring tools
 - Affected systems/services
 - Remediation actions
 - Monitoring blind spots
 
-### 6.3 Post-Incident Actions
+### 4.3 Post-Incident Actions
 - Analyze alert timing & gaps
 - Update dashboards
 - Adjust alert thresholds as needed
 
-### 6.4 Postmortems
+### 4.4 Postmortems
 
 All P1 and significant P2 incidents must have a documented postmortem within 5 business days.
 
@@ -141,14 +141,14 @@ All P1 and significant P2 incidents must have a documented postmortem within 5 b
 - **Impact assessment**: users, systems, SLAs affected
 - **Timeline of events**: detection, escalation, mitigation
 - **Corrective actions**: technical, process, or people-based
-- **Follow-up tasks** tracked in ticketing/project system
+- **Follow-up tasks** tracked in a ticketing or project tracking system
 - **Review meeting** with involved teams (optional but encouraged)
 
 ---
 
-## 9. Documentation Requirements
+## 5. Documentation Requirements
 
-### 9.1 Service Onboarding Checklist
+### 5.1 Service Onboarding Checklist
 Every new service must provide:
 - Architecture and business context
 - Custom metrics and monitoring needs
@@ -156,7 +156,7 @@ Every new service must provide:
 - On-call contact details
 - Runbook(s) for key alerts
 
-### 9.2 Runbook Standards
+### 5.2 Runbook Standards
 Each runbook must include:
 - Overview and dependencies
 - Failure symptoms and recovery steps
@@ -166,7 +166,7 @@ Each runbook must include:
 
 ---
 
-## 11. Implementation Checklist
+## 6. Implementation Checklist
 
 ### For New Services:
 - [ ] Monitoring requirements defined
